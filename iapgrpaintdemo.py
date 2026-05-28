@@ -8,40 +8,27 @@
 # Title: IAP GR-Paint Demo
 # Author: John Swoboda
 # Description: Creates a pfb sythesis of images and outputs them to a pluto
-# GNU Radio version: 3.10.3.0
-
-from packaging.version import Version as StrictVersion
-
-if __name__ == '__main__':
-    import ctypes
-    import sys
-    if sys.platform.startswith('linux'):
-        try:
-            x11 = ctypes.cdll.LoadLibrary('libX11.so')
-            x11.XInitThreads()
-        except:
-            print("Warning: failed to XInitThreads()")
+# GNU Radio version: 3.10.8.0
 
 from PyQt5 import Qt
 from gnuradio import qtgui
-from gnuradio.filter import firdes
-import sip
 from gnuradio import blocks
 import pmt
 from gnuradio import filter
+from gnuradio.filter import firdes
 from gnuradio import gr
 from gnuradio.fft import window
 import sys
 import signal
+from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import iio
 import paint
+import sip
 
 
-
-from gnuradio import qtgui
 
 class iapgrpaintdemo(gr.top_block, Qt.QWidget):
 
@@ -52,8 +39,8 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
-        except:
-            pass
+        except BaseException as exc:
+            print(f"Qt GUI: Could not set Icon: {str(exc)}", file=sys.stderr)
         self.top_scroll_layout = Qt.QVBoxLayout()
         self.setLayout(self.top_scroll_layout)
         self.top_scroll = Qt.QScrollArea()
@@ -69,12 +56,11 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.settings = Qt.QSettings("GNU Radio", "iapgrpaintdemo")
 
         try:
-            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-                self.restoreGeometry(self.settings.value("geometry").toByteArray())
-            else:
-                self.restoreGeometry(self.settings.value("geometry"))
-        except:
-            pass
+            geometry = self.settings.value("geometry")
+            if geometry:
+                self.restoreGeometry(geometry)
+        except BaseException as exc:
+            print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
 
         ##################################################
         # Variables
@@ -82,12 +68,13 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate = int(2.4e6)
         self.M = M = 5
         self.pfb_taps = pfb_taps = firdes.low_pass_2(1, M*samp_rate, samp_rate/2, samp_rate/5, 80)
-        self.gain = gain = 5
+        self.gain = gain = 100
         self.fc = fc = int(915e6)
 
         ##################################################
         # Blocks
         ##################################################
+
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -178,11 +165,11 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.set_pfb_taps(firdes.low_pass_2(1, self.M*self.samp_rate, self.samp_rate/2, self.samp_rate/5, 80))
         self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.blocks_throttle_0_0.set_sample_rate(self.samp_rate)
+        self.blocks_throttle_0_0_0.set_sample_rate(self.samp_rate)
         self.blocks_throttle_0_1.set_sample_rate(self.samp_rate)
         self.blocks_throttle_0_1_0_0.set_sample_rate(self.samp_rate)
         self.iio_pluto_sink_0.set_samplerate((self.samp_rate*self.M))
         self.qtgui_sink_x_0.set_frequency_range(0, (self.samp_rate*self.M))
-        self.blocks_throttle_0_0_0.set_sample_rate(self.samp_rate)
 
     def get_M(self):
         return self.M
@@ -219,9 +206,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
 
 def main(top_block_cls=iapgrpaintdemo, options=None):
 
-    if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-        style = gr.prefs().get_string('qtgui', 'style', 'raster')
-        Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
     tb = top_block_cls()
