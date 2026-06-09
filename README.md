@@ -6,6 +6,8 @@ We originally made this for tours during Independent Activities Period (IAP) at 
 ## Theory of Operation
 The multimagepaint.grc file is a gnuradio script that outputs a 6 MHz wide transmission, centered at 915 MHz, of three different images with [GR-Paint](https://github.com/drmpeg/gr-paint) `spectrum painter` block. Each spectrum painter stream at 2 MHz is then placed into a polyphase synthesizer to be transmitted over different frequencies. SDRs with narrow bandwidths (~2 MHz) can then tune to view individual pictures. The current set up uses a ADALM Pluto but differnet radio sinks can be used, just make sure the SDR can handle the bandwidth. 
 
+If it's desired to add/replace an image change the name in the file source block to the desired file. Then in the spectrum painter block change the image width so it corresponds with the first dimension for the image.
+
 Currently three images are stitched together and need to be black and white bin files. These files can be made by first creating a tga image and then using tgatoluma. The next section will detail how to translate the images. There is a gnuradio-block that comes with GR-Paint to read the images for input to the spectrum painter blockformat. There were some issues in the past with using this block on a Mac, likely due to the legendary conversion from x86 to ARM of the late 2010s-2020s.  
 
 ## Translating an image

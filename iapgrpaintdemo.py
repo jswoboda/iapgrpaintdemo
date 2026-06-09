@@ -8,7 +8,7 @@
 # Title: IAP GR-Paint Demo
 # Author: John Swoboda
 # Description: Creates a pfb sythesis of images and outputs them to a pluto
-# GNU Radio version: 3.10.8.0
+# GNU Radio version: 3.10.12.0
 
 from PyQt5 import Qt
 from gnuradio import qtgui
@@ -27,6 +27,7 @@ from gnuradio import eng_notation
 from gnuradio import iio
 import paint
 import sip
+import threading
 
 
 
@@ -53,7 +54,7 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "iapgrpaintdemo")
+        self.settings = Qt.QSettings("gnuradio/flowgraphs", "iapgrpaintdemo")
 
         try:
             geometry = self.settings.value("geometry")
@@ -61,6 +62,7 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
                 self.restoreGeometry(geometry)
         except BaseException as exc:
             print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
+        self.flowgraph_started = threading.Event()
 
         ##################################################
         # Variables
@@ -150,7 +152,7 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "iapgrpaintdemo")
+        self.settings = Qt.QSettings("gnuradio/flowgraphs", "iapgrpaintdemo")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -211,6 +213,7 @@ def main(top_block_cls=iapgrpaintdemo, options=None):
     tb = top_block_cls()
 
     tb.start()
+    tb.flowgraph_started.set()
 
     tb.show()
 
