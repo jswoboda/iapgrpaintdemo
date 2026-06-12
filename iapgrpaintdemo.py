@@ -24,7 +24,6 @@ from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import iio
 import paint
 import sip
 import threading
@@ -78,15 +77,15 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         ##################################################
 
         self.qtgui_sink_x_0 = qtgui.sink_c(
-            1024, #fftsize
+            8192, #fftsize
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             (samp_rate*M), #bw
             "", #name
             True, #plotfreq
             True, #plotwaterfall
-            True, #plottime
-            True, #plotconst
+            False, #plottime
+            False, #plotconst
             None # parent
         )
         self.qtgui_sink_x_0.set_update_time(1.0/10)
@@ -105,13 +104,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.paint_paint_bc_0_1 = paint.paint_bc(320, 40, paint.EQUALIZATION_OFF, paint.INTERNAL, 1)
         self.paint_paint_bc_0_0 = paint.paint_bc(2467, 4, paint.EQUALIZATION_ON, paint.INTERNAL, 1)
         self.paint_paint_bc_0 = paint.paint_bc(2200, 4, paint.EQUALIZATION_OFF, paint.INTERNAL, 1)
-        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('' if '' else iio.get_pluto_uri(), [True, True], 32768, False)
-        self.iio_pluto_sink_0.set_len_tag_key('')
-        self.iio_pluto_sink_0.set_bandwidth(20000000)
-        self.iio_pluto_sink_0.set_frequency(fc)
-        self.iio_pluto_sink_0.set_samplerate((samp_rate*M))
-        self.iio_pluto_sink_0.set_attenuation(0, 0.)
-        self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
         self.blocks_throttle_0_1_0_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_throttle_0_1 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_throttle_0_0_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
@@ -136,7 +128,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_file_source_0_0, 0), (self.paint_paint_bc_0_0, 0))
         self.connect((self.blocks_file_source_0_1, 0), (self.paint_paint_bc_0_1, 0))
         self.connect((self.blocks_file_source_0_1_0_0, 0), (self.paint_paint_bc_0_1_0_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.iio_pluto_sink_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.qtgui_sink_x_0, 0))
         self.connect((self.blocks_null_source_0, 0), (self.blocks_throttle_0_0_0, 0))
         self.connect((self.blocks_throttle_0, 0), (self.pfb_synthesizer_ccf_0, 1))
@@ -170,7 +161,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
         self.blocks_throttle_0_0_0.set_sample_rate(self.samp_rate)
         self.blocks_throttle_0_1.set_sample_rate(self.samp_rate)
         self.blocks_throttle_0_1_0_0.set_sample_rate(self.samp_rate)
-        self.iio_pluto_sink_0.set_samplerate((self.samp_rate*self.M))
         self.qtgui_sink_x_0.set_frequency_range(0, (self.samp_rate*self.M))
 
     def get_M(self):
@@ -179,7 +169,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
     def set_M(self, M):
         self.M = M
         self.set_pfb_taps(firdes.low_pass_2(1, self.M*self.samp_rate, self.samp_rate/2, self.samp_rate/5, 80))
-        self.iio_pluto_sink_0.set_samplerate((self.samp_rate*self.M))
         self.qtgui_sink_x_0.set_frequency_range(0, (self.samp_rate*self.M))
 
     def get_pfb_taps(self):
@@ -201,7 +190,6 @@ class iapgrpaintdemo(gr.top_block, Qt.QWidget):
 
     def set_fc(self, fc):
         self.fc = fc
-        self.iio_pluto_sink_0.set_frequency(self.fc)
 
 
 

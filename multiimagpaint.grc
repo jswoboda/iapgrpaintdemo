@@ -379,6 +379,32 @@ blocks:
     bus_structure: null
     coordinate: [1272, 360.0]
     rotation: 0
+    state: disabled
+- name: iio_pluto_sink_0_0
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: '0.'
+    bandwidth: '20000000'
+    buffer_size: '32768'
+    comment: ''
+    cyclic: 'False'
+    filter: ''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: fc
+    fstop: '0'
+    len_tag_key: ''
+    samplerate: samp_rate*M
+    type: fc32
+    uri: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1280, 344.0]
+    rotation: 0
     state: enabled
 - name: paint_paint_bc_0
   id: paint_paint_bc
@@ -505,14 +531,14 @@ blocks:
     bw: samp_rate*M
     comment: ''
     fc: '0'
-    fftsize: '1024'
+    fftsize: '8192'
     gui_hint: ''
     maxoutbuf: '0'
     minoutbuf: '0'
     name: '""'
-    plotconst: 'True'
+    plotconst: 'False'
     plotfreq: 'True'
-    plottime: 'True'
+    plottime: 'False'
     plotwaterfall: 'True'
     rate: '10'
     showports: 'False'
@@ -891,6 +917,7 @@ connections:
 - [blocks_file_source_0_1_0, '0', paint_paint_bc_0_1_0, '0']
 - [blocks_file_source_0_1_0_0, '0', paint_paint_bc_0_1_0_0, '0']
 - [blocks_multiply_const_vxx_0, '0', iio_pluto_sink_0, '0']
+- [blocks_multiply_const_vxx_0, '0', iio_pluto_sink_0_0, '0']
 - [blocks_multiply_const_vxx_0, '0', qtgui_sink_x_0, '0']
 - [blocks_null_source_0, '0', blocks_throttle_0_0_0, '0']
 - [blocks_throttle_0, '0', pfb_synthesizer_ccf_0, '1']
