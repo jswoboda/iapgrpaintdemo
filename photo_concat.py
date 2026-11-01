@@ -33,7 +33,7 @@ import numpy as np
 from jsonargparse import CLI
 from loguru import logger
 from PIL import Image, ImageOps
-
+from fractions import Fraction
 #: File extensions treated as images when a directory is given.
 IMAGE_EXTENSIONS: frozenset = frozenset(
     {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".gif", ".webp"}
@@ -83,7 +83,7 @@ def collect_paths(inputs: Sequence[str]) -> List[Path]:
     return sorted(unique, key=lambda p: (p.name.casefold(), str(p)))
 
 
-def load_grayscale(path: Path) -> Optional[np.ndarray]:
+def load_grayscale(path: Path,img_width: int=0) -> Optional[np.ndarray]:
     """Read an image file and convert it to an 8-bit grayscale array.
 
     EXIF orientation is applied so that rotated phone photos are upright.
@@ -92,7 +92,8 @@ def load_grayscale(path: Path) -> Optional[np.ndarray]:
     ----------
     path : Path
         Path to the image file.
-
+    img_width : int
+        Width of the image in pixels that it will be interpolated to.
     Returns
     -------
     numpy.ndarray or None
@@ -103,6 +104,11 @@ def load_grayscale(path: Path) -> Optional[np.ndarray]:
         with Image.open(path) as img:
             img = ImageOps.exif_transpose(img)
             gray = img.convert("L")
+            if img_width != 0:
+                wid, height = gray.size
+                img_frac = Fraction(img_width,wid)
+                img_hei = int(img_frac*height)
+                gray = gray.resize((img_width,img_hei))
             return np.asarray(gray, dtype=np.uint8).copy()
     except Exception as exc:  # noqa: BLE001 - any read/convert failure means skip
         logger.warning("Could not read or convert '{}', skipping: {}", path, exc)
@@ -267,6 +273,7 @@ def main(
     output_format: Literal["jpeg", "png", "tiff", "bmp"] = "jpeg",
     gamma: Optional[List[float]] = None,
     pad_value: int = 0,
+    img_width: int = 0,
 ) -> str:
     """Convert photos to grayscale and stack them vertically.
 
@@ -286,7 +293,8 @@ def main(
         means no correction. Default is None (no correction).
     pad_value : int, optional
         Gray level (0-255) used to fill pixels outside each photo. Default is 0.
-
+    img_width : int, optional
+        If set images will be resized to have the width in pixels. Default is 0 leading to the images to be padded to the largest image.
     Returns
     -------
     str
@@ -312,7 +320,7 @@ def main(
 
     images: List[np.ndarray] = []
     for path, g in zip(paths, gammas):
-        arr = load_grayscale(path)
+        arr = load_grayscale(path,img_width)
         if arr is None:
             continue
         images.append(apply_gamma(arr, g))
